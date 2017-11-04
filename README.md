@@ -1,0 +1,2 @@
+# InventoryServer
+Inventory NodeJS  server.
