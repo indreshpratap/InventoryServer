@@ -15,29 +15,22 @@ var db = {
     products: new Datastore({ filename: 'db/products.db', autoload: true })
 };
 
-// app.all('*', function(req, res, next) {
-//     res.header("Access-Control-Allow-Origin", "*");
-//     res.header("Access-Control-Allow-Headers", "X-Requested-With");
-//     res.header('Access-Control-Allow-Headers', 'Content-Type');
-//     next();
-// });
-
-app.get("/initilize", function(req, res) {
+app.get("/initilize", function (req, res) {
     db.users.insert([
         { name: "indresh", password: "12345", role: "user" },
         { name: "admin", password: "admin", role: "admin" }
-    ], function(err, newdoc) {});
+    ], function (err, newdoc) { });
 
-    db.users.find({}, function(err, docs) {
+    db.users.find({}, function (err, docs) {
         res.json(docs);
     });
 });
 
-app.post("/login", function(req, res) {
+app.post("/login", function (req, res) {
     const body = req.body;
 
     if (body) {
-        db.users.findOne(body, function(err, doc) {
+        db.users.findOne(body, function (err, doc) {
             var json;
             console.log(doc);
             if (err) {
@@ -69,7 +62,7 @@ function ensureToken(req, res, next) {
 }
 
 function verifyJWT(req, res, next) {
-    jwt.verify(req.token, SECRET_KEY, function(err, data) {
+    jwt.verify(req.token, SECRET_KEY, function (err, data) {
         if (err) {
             console.log(err);
             res.sendStatus(403);
@@ -81,13 +74,13 @@ function verifyJWT(req, res, next) {
     });
 }
 
-app.get("/protected", ensureToken, verifyJWT, function(req, res) {
+app.get("/protected", ensureToken, verifyJWT, function (req, res) {
     res.json({
         data: req.tokenData
     });
 });
 
-app.get("/checklogin", ensureToken, verifyJWT, function(req, res) {
+app.get("/checklogin", ensureToken, verifyJWT, function (req, res) {
 
     res.json({
         data: req.tokenData,
@@ -95,7 +88,23 @@ app.get("/checklogin", ensureToken, verifyJWT, function(req, res) {
     });
 });
 
+app.get("/products", ensureToken, verifyJWT, function (req, res) {
+    db.products.find({}, function (err, result) {
+        res.json({ products: result });
+    });
+});
 
-app.listen(3000, function() {
+app.post("/save-product", ensureToken, verifyJWT, function (req, res) {
+    var data = req.body;
+    db.products.insert(data, function (err, newdoc) {
+        if (!err) {
+            res.json({ status: true });
+        } else {
+            res.json({ status: false, err: err });
+        }
+    });
+});
+
+app.listen(3000, function () {
     console.log("Application running at localhost:3000");
 })
