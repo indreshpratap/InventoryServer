@@ -1,9 +1,11 @@
 var express = require("express");
 var bodyParser = require("body-parser");
 var jwt = require("jsonwebtoken");
+var cors = require("cors");
 var Datastore = require("nedb");
 
 const app = express();
+app.use(cors());
 app.use(bodyParser.json());
 
 const SECRET_KEY = "secret";
@@ -12,6 +14,13 @@ var db = {
     users: new Datastore({ filename: 'db/users.db', autoload: true }),
     products: new Datastore({ filename: 'db/products.db', autoload: true })
 };
+
+// app.all('*', function(req, res, next) {
+//     res.header("Access-Control-Allow-Origin", "*");
+//     res.header("Access-Control-Allow-Headers", "X-Requested-With");
+//     res.header('Access-Control-Allow-Headers', 'Content-Type');
+//     next();
+// });
 
 app.get("/initilize", function(req, res) {
     db.users.insert([
@@ -75,6 +84,14 @@ function verifyJWT(req, res, next) {
 app.get("/protected", ensureToken, verifyJWT, function(req, res) {
     res.json({
         data: req.tokenData
+    });
+});
+
+app.get("/checklogin", ensureToken, verifyJWT, function(req, res) {
+
+    res.json({
+        data: req.tokenData,
+        status: true
     });
 });
 
